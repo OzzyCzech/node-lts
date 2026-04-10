@@ -1,5 +1,5 @@
 {
-  "name": "node-lts",
+  "name": "@ozzyczech/node-lts",
   "version": "1.0.1",
   "description": "Get active Node.js LTS and current version numbers",
   "license": "MIT",
@@ -35,7 +35,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && chmod +x dist/cli.js",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",

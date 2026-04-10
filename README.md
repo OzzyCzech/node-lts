@@ -1,8 +1,8 @@
-# node-lts
+# @ozzyczech/node-lts
 
-[![NPM Downloads](https://img.shields.io/npm/dm/node-lts?style=for-the-badge)](https://www.npmjs.com/package/node-lts)
-[![NPM Version](https://img.shields.io/npm/v/node-lts?style=for-the-badge)](https://www.npmjs.com/package/node-lts)
-[![NPM License](https://img.shields.io/npm/l/node-lts?style=for-the-badge)](https://github.com/OzzyCzech/node-lts/blob/main/LICENSE)
+[![NPM Downloads](https://img.shields.io/npm/dm/@ozzyczech/node-lts?style=for-the-badge)](https://www.npmjs.com/package/@ozzyczech/node-lts)
+[![NPM Version](https://img.shields.io/npm/v/@ozzyczech/node-lts?style=for-the-badge)](https://www.npmjs.com/package/@ozzyczech/node-lts)
+[![NPM License](https://img.shields.io/npm/l/@ozzyczech/node-lts?style=for-the-badge)](https://github.com/OzzyCzech/node-lts/blob/main/LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/OzzyCzech/node-lts?style=for-the-badge)](https://github.com/OzzyCzech/node-lts/commits/main)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/OzzyCzech/node-lts/main.yml?style=for-the-badge)](https://github.com/OzzyCzech/node-lts/actions)
 
@@ -13,7 +13,7 @@ Get active Node.js LTS and [current](https://nodejs.org/en/about/releases/) vers
 ### CLI via npx
 
 ```sh
-npx node-lts
+npx @ozzyczech/node-lts
 ```
 
 Output:
@@ -35,11 +35,11 @@ Output:
 ### Library
 
 ```sh
-npm install node-lts
+npm install @ozzyczech/node-lts
 ```
 
 ```ts
-import { getNodeVersions } from 'node-lts';
+import { getNodeVersions } from '@ozzyczech/node-lts';
 
 const { active, lts, current } = await getNodeVersions();
 console.log(active);  // [20, 22, 24, 25]
