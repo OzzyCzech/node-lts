@@ -1,6 +1,6 @@
 {
   "name": "node-versions-info",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "Get active Node.js LTS and current version numbers",
   "license": "MIT",
   "author": "Roman Ožana <roman@ozana.cz> (https://ozana.cz/)",
