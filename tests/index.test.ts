@@ -17,6 +17,7 @@ describe('parseSchedule', () => {
     expect(result.active).toEqual([20, 22, 24, 25]);
     expect(result.lts).toBe(24);
     expect(result.current).toBe(25);
+    expect(result.next).toBe(26);
   });
 
   it('excludes versions past EOL', () => {
@@ -45,6 +46,11 @@ describe('parseSchedule', () => {
   it('active list is sorted ascending', () => {
     const result = parseSchedule(mockSchedule, '2026-04-10');
     expect(result.active).toEqual([...result.active].sort((a, b) => a - b));
+  });
+
+  it('returns null for next when no upcoming versions', () => {
+    const result = parseSchedule(mockSchedule, '2030-01-01');
+    expect(result.next).toBeNull();
   });
 
   it('returns empty active when all versions are outside range', () => {
