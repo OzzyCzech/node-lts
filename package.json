@@ -1,0 +1,46 @@
+{
+  "name": "node-lts",
+  "version": "1.0.0",
+  "description": "CLI and library to query active Node.js LTS and current versions",
+  "license": "MIT",
+  "author": "Roman Ozana",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OzzyCzech/node-lts.git"
+  },
+  "homepage": "https://github.com/OzzyCzech/node-lts#readme",
+  "bugs": {
+    "url": "https://github.com/OzzyCzech/node-lts/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "bin": {
+    "node-lts": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^3.0.0"
+  }
+}
