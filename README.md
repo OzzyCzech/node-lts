@@ -22,7 +22,8 @@ Output:
 {
   "active": [20, 22, 24, 25],
   "lts": 24,
-  "current": 25
+  "current": 25,
+  "next": 26
 }
 ```
 
@@ -31,6 +32,7 @@ Output:
 | `active`  | All major versions within their support window          |
 | `lts`     | Highest major version in Active LTS phase               |
 | `current` | Highest released major version                          |
+| `next`    | Next upcoming version (not yet released), or `null`     |
 
 ### Library
 
@@ -41,10 +43,11 @@ npm install node-versions-info
 ```ts
 import { getNodeVersions } from 'node-versions-info';
 
-const { active, lts, current } = await getNodeVersions();
+const { active, lts, current, next } = await getNodeVersions();
 console.log(active);  // [20, 22, 24, 25]
 console.log(lts);     // 24
 console.log(current); // 25
+console.log(next);    // 26
 ```
 
 ## Data source
