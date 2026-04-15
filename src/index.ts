@@ -2,6 +2,7 @@ const SCHEDULE_URL =
   'https://raw.githubusercontent.com/nodejs/Release/main/schedule.json';
 
 export interface NodeVersions {
+  maintenance: number[];
   active: number[];
   lts: number;
   current: number;
@@ -12,6 +13,7 @@ interface ScheduleEntry {
   start: string;
   end: string;
   lts?: string;
+  maintenance?: string;
   codename?: string;
 }
 
@@ -20,6 +22,7 @@ export function parseSchedule(
   today = new Date().toISOString().slice(0, 10),
 ): NodeVersions {
   const active: number[] = [];
+  const maintenance: number[] = [];
   let lts = 0;
   let current = 0;
   let next: number | null = null;
@@ -32,6 +35,9 @@ export function parseSchedule(
       if (info.lts && today >= info.lts) {
         lts = Math.max(lts, major);
       }
+      if (info.maintenance && today >= info.maintenance) {
+        maintenance.push(major);
+      }
       current = Math.max(current, major);
     } else if (info.start > today && (nextStart === '' || info.start < nextStart)) {
       next = major;
@@ -40,7 +46,8 @@ export function parseSchedule(
   }
 
   active.sort((a, b) => a - b);
-  return { active, lts, current, next };
+  maintenance.sort((a, b) => a - b);
+  return { active, lts, maintenance, current, next };
 }
 
 export async function getNodeVersions(): Promise<NodeVersions> {
