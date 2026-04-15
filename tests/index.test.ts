@@ -32,40 +32,50 @@ const mockSchedule = {
 };
 
 describe('parseSchedule', () => {
-  it('returns correct active versions for 2026-04-10', () => {
+  it('returns correct snapshot for 2026-04-10', () => {
     const result = parseSchedule(mockSchedule, '2026-04-10');
-    expect(result.active).toEqual([20, 22, 24, 25]);
-    expect(result.lts).toBe(24);
-    expect(result.current).toBe(25);
-    expect(result.next).toBe(26);
+    expect(result).toEqual({
+      lts: 24,
+      activeLts: [22, 24],
+      maintenanceLts: [20],
+      current: 25,
+      supported: [20, 22, 24, 25],
+      next: 26,
+    });
   });
 
   it('excludes versions past EOL', () => {
     const result = parseSchedule(mockSchedule, '2026-04-10');
-    expect(result.active).not.toContain(21);
-    expect(result.active).not.toContain(23);
+    expect(result.supported).not.toContain(21);
+    expect(result.supported).not.toContain(23);
   });
 
   it('excludes versions not yet released', () => {
     const result = parseSchedule(mockSchedule, '2026-04-10');
-    expect(result.active).not.toContain(26);
+    expect(result.supported).not.toContain(26);
   });
 
-  it('lts is highest even version past its lts date', () => {
-    // Before v24 enters LTS (2025-10-28), v22 should be lts
+  it('lts is highest Active LTS (excludes Maintenance LTS)', () => {
+    // Before v24 enters LTS (2025-10-28), v22 is the highest Active LTS
     const result = parseSchedule(mockSchedule, '2025-06-01');
     expect(result.lts).toBe(22);
+    expect(result.activeLts).toEqual([20, 22]);
     expect(result.current).toBe(24);
   });
 
-  it('version entering LTS is immediately reflected', () => {
+  it('version promoting to LTS is immediately reflected', () => {
     const result = parseSchedule(mockSchedule, '2025-10-28');
     expect(result.lts).toBe(24);
+    expect(result.activeLts).toContain(24);
   });
 
-  it('active list is sorted ascending', () => {
+  it('all arrays are sorted ascending', () => {
     const result = parseSchedule(mockSchedule, '2026-04-10');
-    expect(result.active).toEqual([...result.active].sort((a, b) => a - b));
+    expect(result.supported).toEqual([...result.supported].sort((a, b) => a - b));
+    expect(result.activeLts).toEqual([...result.activeLts].sort((a, b) => a - b));
+    expect(result.maintenanceLts).toEqual(
+      [...result.maintenanceLts].sort((a, b) => a - b),
+    );
   });
 
   it('returns null for next when no upcoming versions', () => {
@@ -73,41 +83,49 @@ describe('parseSchedule', () => {
     expect(result.next).toBeNull();
   });
 
-  it('returns empty active when all versions are outside range', () => {
+  it('returns empty arrays and zero scalars when nothing is in range', () => {
     const result = parseSchedule(mockSchedule, '2030-01-01');
-    expect(result.active).toEqual([]);
+    expect(result.supported).toEqual([]);
+    expect(result.activeLts).toEqual([]);
+    expect(result.maintenanceLts).toEqual([]);
     expect(result.lts).toBe(0);
     expect(result.current).toBe(0);
-    expect(result.maintenance).toEqual([]);
   });
 
-  it('lists majors in maintenance phase', () => {
-    // 2026-04-10: v20 past its maintenance date (2025-10-21),
-    // v25 past its maintenance date (2026-04-01), v22/v24 still active LTS
-    const result = parseSchedule(mockSchedule, '2026-04-10');
-    expect(result.maintenance).toEqual([20, 25]);
-  });
-
-  it('maintenance list is sorted ascending', () => {
-    const result = parseSchedule(mockSchedule, '2026-04-10');
-    expect(result.maintenance).toEqual(
-      [...result.maintenance].sort((a, b) => a - b),
-    );
-  });
-
-  it('excludes maintenance versions past EOL', () => {
-    // 2026-04-10: v21 and v23 are past their end dates → not in active or maintenance
-    const result = parseSchedule(mockSchedule, '2026-04-10');
-    expect(result.maintenance).not.toContain(21);
-    expect(result.maintenance).not.toContain(23);
-  });
-
-  it('version entering maintenance is immediately reflected', () => {
+  it('LTS entering maintenance moves from activeLts to maintenanceLts', () => {
     // v20 enters maintenance on 2025-10-21
     const before = parseSchedule(mockSchedule, '2025-10-20');
-    expect(before.maintenance).not.toContain(20);
+    expect(before.activeLts).toContain(20);
+    expect(before.maintenanceLts).not.toContain(20);
     const onDate = parseSchedule(mockSchedule, '2025-10-21');
-    expect(onDate.maintenance).toContain(20);
+    expect(onDate.activeLts).not.toContain(20);
+    expect(onDate.maintenanceLts).toContain(20);
+  });
+
+  it('Current-in-maintenance is not counted as Maintenance LTS', () => {
+    // v25 is non-LTS Current; it enters maintenance on 2026-04-01 but must
+    // not appear in maintenanceLts — only LTS lines qualify.
+    const result = parseSchedule(mockSchedule, '2026-04-10');
+    expect(result.maintenanceLts).not.toContain(25);
+    expect(result.activeLts).not.toContain(25);
+    expect(result.supported).toContain(25);
+    expect(result.current).toBe(25);
+  });
+
+  it('non-LTS version is never in activeLts or maintenanceLts', () => {
+    const result = parseSchedule(mockSchedule, '2026-04-10');
+    expect(result.activeLts).not.toContain(25);
+    expect(result.maintenanceLts).not.toContain(25);
+  });
+
+  it('supported = activeLts ∪ maintenanceLts ∪ current (non-LTS)', () => {
+    const result = parseSchedule(mockSchedule, '2026-04-10');
+    const union = new Set([
+      ...result.activeLts,
+      ...result.maintenanceLts,
+      result.current,
+    ]);
+    expect([...union].sort((a, b) => a - b)).toEqual(result.supported);
   });
 
   it('ignores entries without a maintenance date', () => {
@@ -115,7 +133,9 @@ describe('parseSchedule', () => {
       v18: { start: '2022-04-19', end: '2099-04-30', lts: '2022-10-25' },
     };
     const result = parseSchedule(schedule, '2026-04-10');
-    expect(result.maintenance).toEqual([]);
-    expect(result.active).toEqual([18]);
+    expect(result.activeLts).toEqual([18]);
+    expect(result.maintenanceLts).toEqual([]);
+    expect(result.supported).toEqual([18]);
+    expect(result.lts).toBe(18);
   });
 });

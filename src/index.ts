@@ -2,10 +2,17 @@ const SCHEDULE_URL =
   'https://raw.githubusercontent.com/nodejs/Release/main/schedule.json';
 
 export interface NodeVersions {
-  maintenance: number[];
-  active: number[];
+  /** Highest major currently in Active LTS — the single recommended production version. */
   lts: number;
+  /** Majors currently in Active LTS phase — use for CI matrix. */
+  activeLts: number[];
+  /** LTS majors now in Maintenance (critical fixes only) — users should upgrade. */
+  maintenanceLts: number[];
+  /** Highest released major (may be non-LTS Current). */
   current: number;
+  /** All majors still receiving any updates (Active LTS ∪ Maintenance LTS ∪ Current). */
+  supported: number[];
+  /** Next upcoming major (not yet released), or `null`. */
   next: number | null;
 }
 
@@ -21,9 +28,9 @@ export function parseSchedule(
   schedule: Record<string, ScheduleEntry>,
   today = new Date().toISOString().slice(0, 10),
 ): NodeVersions {
-  const active: number[] = [];
-  const maintenance: number[] = [];
-  let lts = 0;
+  const supported: number[] = [];
+  const activeLts: number[] = [];
+  const maintenanceLts: number[] = [];
   let current = 0;
   let next: number | null = null;
   let nextStart = '';
@@ -31,12 +38,13 @@ export function parseSchedule(
   for (const [key, info] of Object.entries(schedule)) {
     const major = parseInt(key.slice(1), 10);
     if (today >= info.start && today <= info.end) {
-      active.push(major);
-      if (info.lts && today >= info.lts) {
-        lts = Math.max(lts, major);
-      }
-      if (info.maintenance && today >= info.maintenance) {
-        maintenance.push(major);
+      supported.push(major);
+      const isLts = !!info.lts && today >= info.lts;
+      const inMaintenance = !!info.maintenance && today >= info.maintenance;
+      if (isLts && inMaintenance) {
+        maintenanceLts.push(major);
+      } else if (isLts) {
+        activeLts.push(major);
       }
       current = Math.max(current, major);
     } else if (info.start > today && (nextStart === '' || info.start < nextStart)) {
@@ -45,9 +53,11 @@ export function parseSchedule(
     }
   }
 
-  active.sort((a, b) => a - b);
-  maintenance.sort((a, b) => a - b);
-  return { active, lts, maintenance, current, next };
+  supported.sort((a, b) => a - b);
+  activeLts.sort((a, b) => a - b);
+  maintenanceLts.sort((a, b) => a - b);
+  const lts = activeLts.length > 0 ? activeLts[activeLts.length - 1]! : 0;
+  return { lts, activeLts, maintenanceLts, current, supported, next };
 }
 
 export async function getNodeVersions(): Promise<NodeVersions> {
